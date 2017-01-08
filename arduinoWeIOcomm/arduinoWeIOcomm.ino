@@ -23,7 +23,7 @@ unsigned long mem[NUMPIXELS];
 
 //////////////////////////////////////////////////////////////////////////
 //
-//   Example 1 : "A R255 G255 B255\n"
+//   Example 1 : "A R255 G255 B255\n" or "A #FFFFFF\n"
 //   A - stands for all leds
 //
 //   Example 2 : "A L30\n"
@@ -31,8 +31,9 @@ unsigned long mem[NUMPIXELS];
 //   L - stands for brightness level of actual led color
 //   With this example you set brightness level for all leds
 //
-//   Example 3 : "P R255 G255 B255 L9\n"
+//   Example 3 : "P R255 G255 B255 L9\n" or "H #FFFFFF L99\n"
 //   P - stands for specific led number defined by L parameter
+//
 //
 //   It has to start with A or P other data order is not relevant
 //   It has to finish with \n to be interpreted correctly
@@ -62,21 +63,21 @@ void setup() {
 
 void loop() {
 
-  
-    if (Serial.available()) {
-      char c = Serial.read();
-      buf[bufindex++] = c;
-      if (c == '\n') { // when \n is found, parse it!
-        buf[bufindex] = '\0';  //Null terminate the string - Essential for first use of 'buf' and good programming practice
-        parseCmd(buf);
-        memset(buf, 0, 64);
-        bufindex = 0;
-      }
-      if (bufindex >= 64) {
-        bufindex = 0;
-      }
+
+  if (Serial.available()) {
+    char c = Serial.read();
+    buf[bufindex++] = c;
+    if (c == '\n') { // when \n is found, parse it!
+      buf[bufindex] = '\0';  //Null terminate the string - Essential for first use of 'buf' and good programming practice
+      parseCmd(buf);
+      memset(buf, 0, 64);
+      bufindex = 0;
     }
-  
+    if (bufindex >= 64) {
+      bufindex = 0;
+    }
+  }
+
   //// TEST PURPOSES
   /*
     if (alphaA < 255) alphaA++; else alphaA = 0;
@@ -119,10 +120,44 @@ void parseCmd(char * cmd)
   }
   else if (cmd[0] == 'P') { // command specific light
     singleLight(cmd);
+  } else if (cmd[0] == 'H') {
+    singleLightHexColor(cmd);
   }
   Serial.println("OK");
 }
 
+void singleLightHexColor(char * cmd)
+{
+  char * tmp;
+  char * str;
+  str = strtok_r(cmd, " ", &tmp);
+  int selector = 0;
+  unsigned long color = 0;
+  while (str != NULL) {
+    str = strtok_r(0, " ", &tmp);
+    if (str[0] == 'L') {
+      selector = atoi(str + 1);
+    }
+    else if (str[0] == '#') {
+      color = strtol(str + 1, NULL, 16);
+    }
+  }
+
+  setLight(selector, getRed(color), getGreen(color), getBlue(color));
+  pixels.show(); // This sends the updated pixel color to the hardware.
+
+  /*
+    Serial.print(getRed(color));
+    Serial.print("  ");
+    Serial.print(getGreen(color));
+    Serial.print("  ");
+    Serial.print(getBlue(color));
+    Serial.print("  ");
+    Serial.print(color);
+    Serial.print("  ");
+    Serial.println(selector);
+  */
+}
 void allLights(char * cmd)
 {
   char * tmp;
@@ -132,7 +167,8 @@ void allLights(char * cmd)
   int ledG = -1;
   int ledB = -1;
   int alpha = -1;
-
+  unsigned long color = 0;
+  
   while (str != NULL) {
     str = strtok_r(0, " ", &tmp);
     if (str[0] == 'L') {
@@ -146,6 +182,11 @@ void allLights(char * cmd)
     }
     else if (str[0] == 'B') {
       ledB = atoi(str + 1);
+    } else if (str[0] == '#') {
+      color = strtol(str + 1, NULL, 16);
+      ledR = getRed(color);
+      ledG = getGreen(color);
+      ledB = getBlue(color);
     }
   }
 
@@ -183,13 +224,13 @@ void allLights(char * cmd)
   }
 
   /*
-  Serial.print(alpha);
-  Serial.print("  ");
-  Serial.print(ledR);
-  Serial.print("  ");
-  Serial.print(ledG);
-  Serial.print("  ");
-  Serial.println(ledB);
+    Serial.print(alpha);
+    Serial.print("  ");
+    Serial.print(ledR);
+    Serial.print("  ");
+    Serial.print(ledG);
+    Serial.print("  ");
+    Serial.println(ledB);
   */
 }
 
