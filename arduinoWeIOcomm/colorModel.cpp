@@ -1,10 +1,6 @@
 //
 //  colorModel.c
 //  waelice
-//
-//  Created by uros petrevski on 07/10/12.
-//  Copyright 2012 NoDesign. All rights reserved.
-//
 
 #include "colorModel.h"
 #include <math.h>
@@ -134,4 +130,5 @@ void RGBtoHSB(struct color *c) {
             c->hue = c->hue + 1.0f;
     }
 }
+
 

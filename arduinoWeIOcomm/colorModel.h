@@ -2,9 +2,6 @@
 //  colorModel.h
 //  waelice
 //
-//  Created by uros petrevski on 07/10/12.
-//  Copyright 2012 NoDesign. All rights reserved.
-//
 
 #ifndef COLORMODEL_H
 #define COLORMODEL_H
@@ -22,5 +19,6 @@ void HSBtoRGB(struct color *c);
 void RGBtoHSB(struct color *c);
 
 #endif // COLORMODEL_H
+
 
 
